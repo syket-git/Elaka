@@ -1,64 +1,156 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import Link from 'next/link';
+import { Sparkles, ChevronRight, TrendingUp } from 'lucide-react';
+import { Header } from '@/components/layout/Header';
+import { SearchBar } from '@/components/ui/SearchBar';
+import { AreaCard } from '@/components/ui/AreaCard';
+import { ReviewCard } from '@/components/ui/ReviewCard';
+import { useLanguage } from '@/hooks/useLanguage';
+import { areas, reviews } from '@/lib/seed-data';
+import { formatNumber } from '@/lib/utils';
+
+export default function HomePage() {
+  const { lang, t } = useLanguage();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Get top areas by score
+  const popularAreas = [...areas]
+    .sort((a, b) => b.scores.overall_score - a.scores.overall_score)
+    .slice(0, 4);
+
+  // Get recent reviews
+  const recentReviews = [...reviews]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 3);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen">
+      <Header />
+
+      <main className="px-4 pb-8 max-w-lg mx-auto">
+        {/* Hero Section */}
+        <section className="py-6">
+          <h1 className="text-2xl font-bold text-white mb-2">
+            {t.appTagline}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-slate-400 text-sm">
+            {lang === 'bn'
+              ? 'চট্টগ্রামের যেকোনো এলাকা সম্পর্কে জানুন বাসিন্দাদের কাছ থেকে'
+              : 'Learn about any area in Chittagong from the residents'}
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+        </section>
+
+        {/* Search */}
+        <section className="mb-6">
+          <Link href="/search">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              className="pointer-events-none"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          </Link>
+        </section>
+
+        {/* AI Assistant Card */}
+        <Link href="/ask">
+          <section className="mb-8 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl p-4 border border-emerald-500/30 active:scale-[0.98] transition-transform">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-white mb-1">
+                  {t.home.askAI}
+                </h3>
+                <p className="text-sm text-slate-400">
+                  {t.home.askPlaceholder}
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-emerald-400 mt-2" />
+            </div>
+          </section>
+        </Link>
+
+        {/* Popular Areas */}
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-lg font-semibold text-white">
+                {t.home.popularAreas}
+              </h2>
+            </div>
+            <Link
+              href="/search"
+              className="text-sm text-emerald-400 hover:text-emerald-300"
+            >
+              {t.home.viewAll}
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {popularAreas.map((area) => (
+              <AreaCard key={area.id} area={area} variant="compact" />
+            ))}
+          </div>
+        </section>
+
+        {/* Recent Reviews */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">
+              {t.home.recentReviews}
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            {recentReviews.map((review) => {
+              const area = areas.find((a) => a.id === review.area_id);
+              return (
+                <div key={review.id}>
+                  {area && (
+                    <Link href={`/area/${area.slug}`}>
+                      <span className="text-xs text-emerald-400 mb-1 inline-block">
+                        {lang === 'bn' ? area.name_bn : area.name}
+                      </span>
+                    </Link>
+                  )}
+                  <ReviewCard review={review} />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Stats */}
+        <section className="mt-8 grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold gradient-text">
+              {formatNumber(areas.length, lang)}+
+            </div>
+            <div className="text-xs text-slate-400">
+              {lang === 'bn' ? 'এলাকা' : 'Areas'}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold gradient-text">
+              {formatNumber(areas.reduce((sum, a) => sum + a.scores.total_ratings, 0), lang)}+
+            </div>
+            <div className="text-xs text-slate-400">
+              {lang === 'bn' ? 'রেটিং' : 'Ratings'}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold gradient-text">
+              {formatNumber(reviews.length, lang)}+
+            </div>
+            <div className="text-xs text-slate-400">
+              {lang === 'bn' ? 'রিভিউ' : 'Reviews'}
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
